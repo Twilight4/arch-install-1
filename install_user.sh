@@ -48,6 +48,10 @@ install-apps() {
     # for razer gears
     sudo groupadd plugdev
     sudo usermod -aG plugdev "$(whoami)"
+    
+    # wifi TP-Link driver
+    curl -LO https://raw.githubusercontent.com/Twilight4/arch-install/master/wifi-driver.sh
+    bash wifi-driver.sh
       
     ## for Docker
     #gpasswd -a "$name" docker
