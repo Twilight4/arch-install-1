@@ -79,8 +79,8 @@ install-dotfiles() {
     #sudo rm -rf /usr/share/fonts/cantarell
     #sudo rm -rf /usr/share/fonts/gnu-free
     sudo mv /tmp/dotfiles/wallpapers/ "/home/$(whoami)/Pictures/"
-    sudo mv /tmp/dotfiles/fonts/ "/home/$(whoami)/.config/.local/share/"
-    sudo rm "/home/$(whoami)/.config/.local/share/fonts/README.md"
+    sudo mv /tmp/dotfiles/fonts/ "/home/$(whoami)/.local/share/"
+    sudo rm "/home/$(whoami)/.local/share/fonts/README.md"
     sudo fc-cache -f
     sudo rm /home/$(whoami)/.bash*
     sudo chmod 755 $HOME/.local/bin/wrappedh1
