@@ -151,7 +151,7 @@ continue-install() {
 
     dialog --title "Continue installation" --yesno "Do you want to install all the Twilight4's softwares and the dotfiles?" 10 60 \
         && curl "$url_installer/install_user.sh" > /home/twilight/install_user.sh \ 
-        && curl https://raw.githubusercontent.com/Twilight4/arch-install-1/master/hyprland.desktop > /home/twilight/hyprland.desktop
+        curl https://raw.githubusercontent.com/Twilight4/arch-install-1/master/hyprland.desktop > /home/twilight/hyprland.desktop
 
 }
 
