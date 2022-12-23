@@ -54,7 +54,7 @@ install-apps() {
     bash wifi-driver.sh
     
     # for hyprland
-    mv ~/hyprland.desktop /usr/share/wayland-sessions/hyprland.desktop
+    sudo mv ~/hyprland.desktop /usr/share/wayland-sessions/hyprland.desktop
       
     ## for Docker
     #gpasswd -a "$name" docker
