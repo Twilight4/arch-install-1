@@ -158,6 +158,7 @@ set-leftovers() {
     && cd - \
     && rm -rf linux-xanmod-headers-bin \
     && curl https://raw.githubusercontent.com/Twilight4/arch-install/main/grub > /etc/default/grub \
+    && sudo mkinitcpio -p linux-xanmod \
     && grub-mkconfig -o /boot/grub/grub.cfg
 }
 
