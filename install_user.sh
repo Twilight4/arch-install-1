@@ -76,13 +76,9 @@ install-dotfiles() {
     
     sudo mv -u /tmp/dotfiles/.config/* "$HOME/.config"
     source "/home/$(whoami)/.config/zsh/.zshenv"
-    #sudo rm -rf /usr/share/fonts/encodings
-    #sudo rm -rf /usr/share/fonts/adobe-source-code-pro
-    #sudo rm -rf /usr/share/fonts/cantarell
-    #sudo rm -rf /usr/share/fonts/gnu-free
-    sudo mv /tmp/dotfiles/wallpapers/ "/home/$(whoami)/Pictures/"
+    sudo rm -rf /usr/share/fonts
     sudo rm "/home/$(whoami)/.config/.local/share/fonts/README.md"
-    sudo fc-cache -f
+    sudo fc-cache -fv
     sudo rm /home/$(whoami)/.bash*
     sudo chmod 755 $HOME/.config/.local/bin/wrappedh1
     sudo chmod 755 $XDG_CONFIG_HOME/hypr/scripts/*
