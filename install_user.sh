@@ -40,7 +40,7 @@ install-yay() {
 }
 
 install-wifi-driver() {
-    sudo pacman -S --noconfirm linux-headers dkms 
+    sudo pacman -S --noconfirm dkms 
     git clone https://github.com/Mange/rtl8192eu-linux-driver \
     && cd rtl8192eu-linux-driver \
     && sudo dkms add . \
