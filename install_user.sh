@@ -66,6 +66,8 @@ create-directories() {
 #sudo mkdir -p "/home/$(whoami)/{Document,Download,Video,workspace,Music}"
 mkdir -p "/home/$(whoami)/.config/.local/share"
 mkdir -p "/home/$(whoami)/Pictures/screenshots"
+mkdir -p "/home/$(whoami)/.local/bin"
+mkdir "/home/$(whoami)/.local/share"
 }
 
 install-dotfiles() {
@@ -86,9 +88,9 @@ install-dotfiles() {
     sudo rm "/home/$(whoami)/.local/share/fonts/README.md"
     sudo fc-cache -f
     sudo rm /home/$(whoami)/.bash*
+    sudo mv /tmp/dotfiles/.local/bin/wrappedh1 "/home/$(whoami)/.local/bin/"
     sudo chmod 755 $HOME/.local/bin/wrappedh1
     sudo chmod 755 $XDG_CONFIG_HOME/hypr/scripts/*
-    sudo chmod 755 $XDG_CONFIG_HOME/swww/*
     #sudo chmod 755 $XDG_CONFIG_HOME/polybar/launch.sh              # outdated
     #sudo chmod 755 $HOME/.config/polybar/polybar-scripts/*         # outdated
     sudo chmod 755 $HOME/.config/rofi/applets/bin/*
