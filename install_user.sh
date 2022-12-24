@@ -99,8 +99,6 @@ install-dotfiles() {
     git config --global user.name "Twilight4"
     sudo systemctl --user enable psd.service                                            # profile sync daemon
     sudo mv ~/dotfiles/hyprland.desktop /usr/share/wayland-sessions/hyprland.desktop    # for hyprland
-
-
 }
 
 install-ghapps() {
