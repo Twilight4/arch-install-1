@@ -64,10 +64,7 @@ install-apps() {
 
 create-directories() {
 #sudo mkdir -p "/home/$(whoami)/{Document,Download,Video,workspace,Music}"
-mkdir -p "/home/$(whoami)/.config/.local/share"
 mkdir -p "/home/$(whoami)/Pictures/screenshots"
-mkdir -p "/home/$(whoami)/.local/bin"
-mkdir "/home/$(whoami)/.local/share"
 }
 
 install-dotfiles() {
@@ -84,8 +81,7 @@ install-dotfiles() {
     #sudo rm -rf /usr/share/fonts/cantarell
     #sudo rm -rf /usr/share/fonts/gnu-free
     sudo mv /tmp/dotfiles/wallpapers/ "/home/$(whoami)/Pictures/"
-    sudo mv /tmp/dotfiles/fonts/ "/home/$(whoami)/.local/share/"
-    sudo rm "/home/$(whoami)/.local/share/fonts/README.md"
+    sudo rm "/home/$(whoami)/.config/.local/share/fonts/README.md"
     sudo fc-cache -f
     sudo rm /home/$(whoami)/.bash*
     sudo mv /tmp/dotfiles/.local/bin/wrappedh1 "/home/$(whoami)/.local/bin/"
@@ -97,8 +93,6 @@ install-dotfiles() {
     sudo chmod 755 $XDG_CONFIG_HOME/rofi/applets/shared/theme.bash
     sudo chmod 755 $XDG_CONFIG_HOME/rofi/launcher/launcher.sh
     sudo chmod 755 $XDG_CONFIG_HOME/zsh/bash-scripts/*.sh
-    sudo mv $HOME/.config/rofi/applets/bin/* ~/.local/bin/
-    sudo mv $HOME/.config/rofi/launcher/launcher.sh ~/.local/bin/
     git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
     git config --global user.email "electrolight071@gmail.com"
     git config --global user.name "Twilight4"
