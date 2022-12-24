@@ -144,8 +144,11 @@ set-leftovers() {
     pacman -Sy
     rmmod pcspkr
     echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
-    # Linux-XanMod Kernel
+    # Installing Linux XanMod Kernel
     yay -S linux-xanmod linux-xanmod-headers
+    curl https://raw.githubusercontent.com/Twilight4/arch-install/main/grub > /etc/default/grub
+    grub-mkconfig -o /boot/grub/grub.cfg
+
 }
 
 continue-install() {
