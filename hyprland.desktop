@@ -1,5 +1,5 @@
 [Desktop Entry]
 Name=Hyprland
-Comment=An intelligent dynamic tiling Wayland compositor
+Comment=hyprland
 Exec=/home/twilight/.local/bin/wrappedh1
 Type=Application
