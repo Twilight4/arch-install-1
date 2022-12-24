@@ -5,6 +5,7 @@ run() {
     download-paclist
     download-yaylist
     install-yay
+    install-wifi-driver    # for my TP-Link wifi adapter
     install-apps
     create-directories
     install-dotfiles
@@ -36,6 +37,18 @@ install-yay() {
     && makepkg --noconfirm -si \
     && cd - \
     && rm -rf yay-bin
+}
+
+install-wifi-driver() {
+    sudo pacman -S --noconfirm linux-headers dkms 
+    git clone https://github.com/Mange/rtl8192eu-linux-driver \
+    && cd rtl8192eu-linux-driver \
+    && sudo dkms add . \
+    && sudo dkms install rtl8192eu/1.0 \
+    && echo "blacklist rtl8xxxu" | sudo tee /etc/modprobe.d/rtl8xxxu.conf \
+    && echo -e "8192eu\n\nloop" | sudo tee /etc/modules \
+    && echo "options 8192eu rtw_power_mgnt=0 rtw_enusbss=0" | sudo tee /etc/modprobe.d/8192eu.conf \
+    && sudo bootctl update \
 }
 
 install-apps() {
@@ -113,7 +126,7 @@ install-ghapps() {
 "$XDG_CONFIG_HOME/tmux/plugins/tpm"
 
 echo 'Post-Installation:
-- NOW DO THIS COMMAND AS ROOT: echo 'export ZDOTDIR="$HOME"/.config/zsh' > /etc/zsh/zshenv and then reboot
+- NOW DO THIS COMMAND AS ROOT: echo 'export ZDOTDIR="$HOME"/.config/zsh' > /etc/zsh/zshenv and then do: systemctl reboot -i
 - sshcreate <name> - Add pub key to github: Settings > SSH > New
 - reload tpm: ctrl + a + shift + i and hit q
 '
