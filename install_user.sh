@@ -5,7 +5,7 @@ run() {
     download-paclist
     download-yaylist
     install-yay
-    install-wifi-driver    # for my TP-Link wifi adapter
+    #install-wifi-driver    # for my TP-Link wifi adapter - check if aur package works instead of building manually
     install-apps
     create-directories
     install-dotfiles
