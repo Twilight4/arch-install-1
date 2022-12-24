@@ -70,7 +70,6 @@ install-apps() {
 
 create-directories() {
 #sudo mkdir -p "/home/$(whoami)/{Document,Download,Video,workspace,Music}"
-mkdir -p "/home/$(whoami)/Pictures/screenshots"
 }
 
 install-dotfiles() {
