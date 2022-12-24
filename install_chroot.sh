@@ -144,7 +144,8 @@ set-leftovers() {
     pacman -Sy
     rmmod pcspkr
     echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
-    curl https://raw.githubusercontent.com/Twilight4/arch-install-1/master/hyprland.desktop > /home/twilight/hyprland.desktop
+    # Linux-XanMod Kernel
+    yay -S linux-xanmod linux-xanmod-headers
 }
 
 continue-install() {
