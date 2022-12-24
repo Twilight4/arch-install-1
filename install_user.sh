@@ -91,7 +91,7 @@ install-dotfiles() {
     git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
     git config --global user.email "electrolight071@gmail.com"
     git config --global user.name "Twilight4"
-    sudo curl https://raw.githubusercontent.com/Twilight4/arch-install-1/main/grub > /etc/default/grub
+    sudo curl https://raw.githubusercontent.com/Twilight4/arch-install/main/grub > /etc/default/grub
     sudo grub-mkconfig -o /boot/grub/grub.cfg
 }
 
