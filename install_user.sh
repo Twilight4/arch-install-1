@@ -61,6 +61,10 @@ install-apps() {
     # for razer gears
     sudo groupadd plugdev
     sudo usermod -aG plugdev "$(whoami)"
+    
+    # profile sync daemon
+    sudo systemctl --user enable psd.service
+    sudo systemctl --user restart psd.service
        
     # for hyprland
     sudo mv ~/dotfiles/hyprland.desktop /usr/share/wayland-sessions/hyprland.desktop
