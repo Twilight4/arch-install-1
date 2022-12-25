@@ -96,6 +96,7 @@ install-dotfiles() {
     git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
     git config --global user.email "electrolight071@gmail.com"
     git config --global user.name "Twilight4"
+    sudo systemctl enable mpd.service                                                   # mpd daemon
     sudo systemctl --user enable psd.service                                            # profile sync daemon
     sudo mv ~/dotfiles/hyprland.desktop /usr/share/wayland-sessions/hyprland.desktop    # for hyprland
 }
