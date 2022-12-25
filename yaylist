@@ -11,7 +11,7 @@ wl-clip-persist-git
 swaylockd
 tty-clock-git
 donut.c
-cava-git
+cava
 udev-block-notify-git
 rofi-lbonn-wayland-git
 librewolf-bin
