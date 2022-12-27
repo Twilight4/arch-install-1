@@ -12,6 +12,7 @@ swaylockd
 tty-clock-git
 donut.c
 cava
+nitch-git
 udev-block-notify-git
 rofi-lbonn-wayland-git
 librewolf-bin
