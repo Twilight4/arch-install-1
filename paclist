@@ -16,7 +16,7 @@ grim
 slurp
 zsh
 zsh-completions
-exa
+lsd
 fzf
 ripgrep
 bat
