@@ -7,9 +7,9 @@ run() {
     install-yay
     #install-wifi-driver    # for my TP-Link wifi adapter - check if aur package works instead of building manually
     install-apps
+    enable-blackarch
     create-directories
     install-dotfiles
-    install-blackarch
     install-ghapps
 }
 
@@ -74,6 +74,15 @@ install-apps() {
     sudo pacman -U 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
 }
 
+enable-blackarch() {
+    curl -O https://blackarch.org/strap.sh
+    && echo 5ea40d49ecd14c2e024deecf90605426db97ea0c strap.sh | sha1sum -c \
+    && chmod +x strap.sh \
+    && sudo ./strap.sh \
+    && sudo pacman -Syu \
+    && rm strap.sh
+}
+
 create-directories() {
 #sudo mkdir -p "/home/$(whoami)/{Document,Download,Video,workspace,Music}"
 }
@@ -105,15 +114,6 @@ install-dotfiles() {
     systemctl --user enable psd.service                                            # profile sync daemon
     systemctl --user enable vnstat.service                                         # network traffic monitor
     sudo mv ~/dotfiles/hyprland.desktop /usr/share/wayland-sessions/hyprland.desktop    # for hyprland
-}
-
-install-blackarch() {
-    curl -O https://blackarch.org/strap.sh
-    && echo 5ea40d49ecd14c2e024deecf90605426db97ea0c strap.sh | sha1sum -c \
-    && chmod +x strap.sh \
-    && sudo ./strap.sh \
-    && sudo pacman -Syu \
-    && rm strap.sh
 }
 
 install-ghapps() {
