@@ -47,3 +47,6 @@ opencl-mesa
 rocm-opencl-runtime
 vnstat
 xcp
+snap-pac
+snap-pac-grub
+snapper
