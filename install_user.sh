@@ -72,7 +72,7 @@ install-apps() {
     sudo pacman-key --recv-key FBA220DFC880C036 --keyserver keyserver.ubuntu.com
     sudo pacman-key --lsign-key FBA220DFC880C036
     sudo pacman -U 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
-    sudo pacman -Sy
+    sudo pacman --noconfirm -Syu
 }
 
 enable-blackarch() {
@@ -80,7 +80,7 @@ enable-blackarch() {
     && echo 5ea40d49ecd14c2e024deecf90605426db97ea0c strap.sh | sha1sum -c \
     && chmod +x strap.sh \
     && sudo ./strap.sh \
-    && sudo pacman -Syu \
+    && sudo pacman --noconfirm -Syu \
     && rm strap.sh
 }
 
