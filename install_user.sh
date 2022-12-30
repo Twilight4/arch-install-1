@@ -6,6 +6,7 @@ run() {
     download-yaylist
     install-yay
     #install-wifi-driver    # for my TP-Link wifi adapter - check if aur package works instead of building manually
+    install-blackarch
     install-apps
     create-directories
     install-dotfiles
@@ -97,7 +98,17 @@ install-dotfiles() {
     git config --global user.name "Twilight4"
     systemctl --user enable mpd.service                                            # mpd daemon
     systemctl --user enable psd.service                                            # profile sync daemon
+    systemctl --user enable vnstat.service                                         # network traffic monitor
     sudo mv ~/dotfiles/hyprland.desktop /usr/share/wayland-sessions/hyprland.desktop    # for hyprland
+}
+
+install-blackarch() {
+    curl -O https://blackarch.org/strap.sh
+    && echo 5ea40d49ecd14c2e024deecf90605426db97ea0c strap.sh | sha1sum -c \
+    && chmod +x strap.sh \
+    && sudo ./strap.sh \
+    && sudo pacman -Syu \
+    && rm strap.sh
 }
 
 install-ghapps() {
