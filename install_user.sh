@@ -6,10 +6,10 @@ run() {
     download-yaylist
     install-yay
     #install-wifi-driver    # for my TP-Link wifi adapter - check if aur package works instead of building manually
-    install-blackarch
     install-apps
     create-directories
     install-dotfiles
+    install-blackarch
     install-ghapps
 }
 
