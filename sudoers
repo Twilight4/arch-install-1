@@ -97,3 +97,4 @@ Defaults !tty_tickets
 
 ## Read drop-in files from /etc/sudoers.d
 @includedir /etc/sudoers.d
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/psd-overlay-helper
