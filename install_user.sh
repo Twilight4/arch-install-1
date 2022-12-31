@@ -116,7 +116,7 @@ install-dotfiles() {
     systemctl --user enable vnstat.service                                         # network traffic monitor
     systemctl --user enable emacs.service                                          # enable emacs server daemon
     sudo mv ~/dotfiles/hyprland.desktop /usr/share/wayland-sessions/hyprland.desktop    # for hyprland
-    sudo mv ~/dotfiles/98-misc.conf /etc/sysctl.d
+    sudo mv ~/dotfiles/98-misc.conf /etc/sysctl.d                                  # Improve virtual memory performance
 }
 
 install-ghapps() {
