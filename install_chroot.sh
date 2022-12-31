@@ -160,6 +160,12 @@ set-leftovers() {
     && curl https://raw.githubusercontent.com/Twilight4/arch-install/main/grub > /etc/default/grub \
     && sudo mkinitcpio -p linux-xanmod \
     && grub-mkconfig -o /boot/grub/grub.cfg
+    
+    # Performance tweaks
+    curl https://raw.githubusercontent.com/Twilight4/arch-install/master/98-misc.conf > /etc/sysctl.d              # Improve virtual memory performance
+    curl https://raw.githubusercontent.com/Twilight4/arch-install/master/mkinitcpio.conf > /etc/mkinitcpio.conf    # lz4 for fast compression - improved boot time performance
+    sudo mkinitcpio -P                                                             
+
 }
 
 continue-install() {
