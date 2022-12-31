@@ -117,8 +117,8 @@ install-dotfiles() {
     systemctl --user enable emacs.service                                          # enable emacs server daemon
     sudo mv ~/dotfiles/hyprland.desktop /usr/share/wayland-sessions/hyprland.desktop    # for hyprland
     sudo mv ~/dotfiles/98-misc.conf /etc/sysctl.d                                  # Improve virtual memory performance
-    sudo mv ~/dotfiles/mkinitcpio.conf /etc/mkinitcpio.conf                        # Improve virtual memory performance
-    sudo mkinitcpio -P
+    sudo mv ~/dotfiles/mkinitcpio.conf /etc/mkinitcpio.conf                        # lz4 for fast compression - improved boot time performance
+    sudo mkinitcpio -P                                                             
 }
 
 install-ghapps() {
