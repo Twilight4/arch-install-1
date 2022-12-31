@@ -149,7 +149,7 @@ set-leftovers() {
     grub-mkconfig -o /boot/grub/grub.cfg
     
     # Performance tweaks
-    curl https://raw.githubusercontent.com/Twilight4/arch-install/master/makepkg.conf > /etc/makepkg.conf              # Improve virtual memory performance
+    curl https://raw.githubusercontent.com/Twilight4/arch-install/master/makepkg.conf > /etc/makepkg.conf          # Parallel compilation and building from files in memory tweak
     curl https://raw.githubusercontent.com/Twilight4/arch-install/master/98-misc.conf > /etc/sysctl.d              # Improve virtual memory performance
     curl https://raw.githubusercontent.com/Twilight4/arch-install/master/mkinitcpio.conf > /etc/mkinitcpio.conf    # lz4 for fast compression - improved boot time performance
     sudo mkinitcpio -P                                                             
