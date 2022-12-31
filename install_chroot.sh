@@ -145,21 +145,8 @@ set-leftovers() {
     pacman -Sy
     rmmod pcspkr
     echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
-    # Installing Linux XanMod Kernel
-    pacman -S --noconfirm git
-    git clone https://aur.archlinux.org/linux-xanmod-bin \
-    && cd linux-xanmod-bin \
-    && makepkg --noconfirm -si \
-    && cd - \
-    && rm -rf linux-xanmod-bin
-    git clone https://aur.archlinux.org/linux-xanmod-headers-bin \
-    && cd linux-xanmod-headers-bin \
-    && makepkg --noconfirm -si \
-    && cd - \
-    && rm -rf linux-xanmod-headers-bin \
-    && curl https://raw.githubusercontent.com/Twilight4/arch-install/main/grub > /etc/default/grub \
-    && sudo mkinitcpio -p linux-xanmod \
-    && grub-mkconfig -o /boot/grub/grub.cfg
+    curl https://raw.githubusercontent.com/Twilight4/arch-install/main/grub > /etc/default/grub
+    grub-mkconfig -o /boot/grub/grub.cfg
     
     # Performance tweaks
     curl https://raw.githubusercontent.com/Twilight4/arch-install/master/98-misc.conf > /etc/sysctl.d              # Improve virtual memory performance
