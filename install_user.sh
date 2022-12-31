@@ -114,6 +114,7 @@ install-dotfiles() {
     systemctl --user enable mpd.service                                            # mpd daemon
     systemctl --user enable psd.service                                            # profile sync daemon
     systemctl --user enable vnstat.service                                         # network traffic monitor
+    systemctl --user enable emacs.service                                          # enable emacs server daemon
     sudo mv ~/dotfiles/hyprland.desktop /usr/share/wayland-sessions/hyprland.desktop    # for hyprland
 }
 
