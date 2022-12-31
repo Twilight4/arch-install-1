@@ -47,8 +47,8 @@ install-apps() {
     sudo chsh -s "$(which zsh)" "$(whoami)"
     
     # for razer gears
-    sudo groupadd plugdev
-    sudo usermod -aG plugdev "$(whoami)"
+    #sudo groupadd plugdev  # should be existing without manually adding the gorup
+    sudo gpasswd -a "$(whoami)" plugdev
       
     ## for Docker
     #gpasswd -a "$name" docker
