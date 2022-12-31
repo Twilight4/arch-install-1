@@ -116,6 +116,7 @@ install-dotfiles() {
     systemctl --user enable vnstat.service                                         # network traffic monitor
     systemctl --user enable emacs.service                                          # enable emacs server daemon
     systemctl --user enable ananicy.service                                        # enable ananicy daemon 
+    systemctl --user enable irqbalance.service                                     # enable irqbalance daemon 
     sudo mv ~/dotfiles/hyprland.desktop /usr/share/wayland-sessions/hyprland.desktop    # for hyprland
 }
 
