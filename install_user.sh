@@ -68,6 +68,12 @@ install-apps() {
     #usermod -aG docker $(whoami)
     #sudo systemctl enable docker.service
     
+    # Changing the I/O Scheduler to bfq
+    sudo modprobe bfq			                           # installing bfq scheduler
+    cat /sys/block/sda/queue/scheduler                     # checking current scheduler
+    echo “bfq” | sudo tee /sys/block/sda/queue/scheduler   # enabling bfq scheduler
+    cat /sys/block/sda/queue/scheduler                     # checking current scheduler
+    
     # Enable Chaotic-AUR
     sudo pacman-key --recv-key FBA220DFC880C036 --keyserver keyserver.ubuntu.com
     sudo pacman-key --lsign-key FBA220DFC880C036
