@@ -99,6 +99,7 @@ install-dotfiles() {
     git config --global core.pager "diff-so-fancy | less --tabs=4 -RFX"
     git config --global user.email "electrolight071@gmail.com"
     git config --global user.name "Twilight4"
+    systemctl --user enable greenclip.service                                      # enable cliphistory daemon
     systemctl --user enable mpd.service                                            # mpd daemon
     systemctl --user enable psd.service                                            # profile sync daemon
     systemctl --user enable vnstat.service                                         # network traffic monitor
