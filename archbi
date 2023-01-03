@@ -15,30 +15,14 @@ mainmenu(){
 		nextitem=${1}
 	fi
 	options=()
-	options+=("${txtlanguage}" "Language")
-	options+=("${txtsetkeymap}" "(loadkeys ...)")
-	options+=("${txteditor}" "(${txtoptional})")
 	options+=("${txtdiskpartmenu}" "")
 	options+=("${txtselectpartsmenu}" "")
-	options+=("" "")
 	options+=("${txtreboot}" "")
 	sel=$(dialog --backtitle "${apptitle}" --title "${txtmainmenu}" --cancel-button "${txtexit}" --default-item "${nextitem}" --menu "" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
 		case ${sel} in
-			"${txtlanguage}")
-				chooselanguage
-				nextitem="${txtsetkeymap}"
-			;;
-			"${txtsetkeymap}")
-				setkeymap
-				nextitem="${txtdiskpartmenu}"
-			;;
-			"${txteditor}")
-				chooseeditor
-				nextitem="${txtdiskpartmenu}"
-			;;
 			"${txtdiskpartmenu}")
 				diskpartmenu
 				nextitem="${txtselectpartsmenu}"
@@ -46,15 +30,6 @@ mainmenu(){
 			"${txtselectpartsmenu}")
 				selectparts
 				nextitem="${txtreboot}"
-			;;
-			"${txthelp}")
-				help
-				nextitem="${txtreboot}"
-			;;
-			"${txtchangelog}")
-				showchangelog
-				nextitem="${txtreboot}"
-			;;
 			"${txtreboot}")
 				rebootpc
 				nextitem="${txtreboot}"
@@ -63,85 +38,6 @@ mainmenu(){
 		mainmenu "${nextitem}"
 	else
 		clear
-	fi
-}
-
-chooselanguage(){
-	options=()
-	options+=("Arabic" "(By Mohammad Alawadi)")
-	options+=("Brazilian" "(By MaxWilliamJF)")
-	options+=("Dutch" "(By bowero)")
-	options+=("English" "(By MatMoul)")
-	options+=("French" "(By MatMoul)")
-	options+=("German" "(By untergrundbiber)")
-	options+=("Greek" "(By quelotic)")
-	options+=("Italian" "(By thegoldgoat)")
-	options+=("Hungarian" "(By KardiWeb)")
-	options+=("Norwegian" "(By mrboen94)")
-	options+=("Polish" "(By dawidd6)")
-	options+=("Portuguese" "(By hugok)")
-	options+=("Russian" "(By Anonymous_Prodject)")
-	options+=("Spanish" "(By Mystogab)")
-	options+=("Turkish" "(By c0b41)")
-	sel=$(dialog --backtitle "${apptitle}" --title "${txtlanguage}" --menu "" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		clear
-		if [ "${sel}" = "English" ]; then
-			loadstrings
-		else
-			eval $(curl -L ${baseurl}/lng/${sel} | sed '/^#/ d')
-		fi
-		if [ "${skipfont}" = "0" ]; then
-			eval $(setfont ${font})
-		fi
-		font=
-		if [ "$(cat /etc/locale.gen | grep ""#${locale}"")" != "" ]; then
-			sed -i "/#${locale}/s/^#//g" /etc/locale.gen
-			locale-gen
-		fi
-		export LANG=${locale}
-	fi
-}
-
-setkeymap(){
-	#items=$(localectl list-keymaps)
-	#options=()
-	#for item in ${items}; do
-	#  options+=("${item}" "")
-	#done
-	items=$(find /usr/share/kbd/keymaps/ -type f -printf "%f\n" | sort -V)
-	options=()
-	for item in ${items}; do
-		options+=("${item%%.*}" "")
-	done
-	keymap=$(dialog --backtitle "${apptitle}" --title "${txtsetkeymap}" --menu "" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		clear
-		echo "loadkeys ${keymap}"
-		loadkeys ${keymap}
-		pressanykey
-	fi
-}
-
-chooseeditor(){
-	options=()
-	options+=("nano" "")
-	options+=("vim" "")
-	options+=("vi" "")
-	options+=("edit" "")
-	sel=$(dialog --backtitle "${apptitle}" --title "${txteditor}" --menu "" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		clear
-		echo "export EDITOR=${sel}"
-		export EDITOR=${sel}
-		EDITOR=${sel}
-		pressanykey
 	fi
 }
 
