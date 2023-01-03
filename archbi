@@ -35,6 +35,10 @@ mainmenu(){
 				setkeymap
 				nextitem="${txtdiskpartmenu}"
 			;;
+			"${txteditor}")
+				chooseeditor
+				nextitem="${txtdiskpartmenu}"
+			;;
 			"${txtdiskpartmenu}")
 				diskpartmenu
 				nextitem="${txtselectpartsmenu}"
@@ -64,7 +68,21 @@ mainmenu(){
 
 chooselanguage(){
 	options=()
+	options+=("Arabic" "(By Mohammad Alawadi)")
+	options+=("Brazilian" "(By MaxWilliamJF)")
+	options+=("Dutch" "(By bowero)")
 	options+=("English" "(By MatMoul)")
+	options+=("French" "(By MatMoul)")
+	options+=("German" "(By untergrundbiber)")
+	options+=("Greek" "(By quelotic)")
+	options+=("Italian" "(By thegoldgoat)")
+	options+=("Hungarian" "(By KardiWeb)")
+	options+=("Norwegian" "(By mrboen94)")
+	options+=("Polish" "(By dawidd6)")
+	options+=("Portuguese" "(By hugok)")
+	options+=("Russian" "(By Anonymous_Prodject)")
+	options+=("Spanish" "(By Mystogab)")
+	options+=("Turkish" "(By c0b41)")
 	sel=$(dialog --backtitle "${apptitle}" --title "${txtlanguage}" --menu "" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
@@ -109,6 +127,24 @@ setkeymap(){
 	fi
 }
 
+chooseeditor(){
+	options=()
+	options+=("nano" "")
+	options+=("vim" "")
+	options+=("vi" "")
+	options+=("edit" "")
+	sel=$(dialog --backtitle "${apptitle}" --title "${txteditor}" --menu "" 0 0 0 \
+		"${options[@]}" \
+		3>&1 1>&2 2>&3)
+	if [ "$?" = "0" ]; then
+		clear
+		echo "export EDITOR=${sel}"
+		export EDITOR=${sel}
+		EDITOR=${sel}
+		pressanykey
+	fi
+}
+
 rebootpc(){
 	if (dialog --backtitle "${apptitle}" --title "${txtreboot}" --defaultno --yesno "${txtreboot} ?" 0 0) then
 		clear
@@ -145,12 +181,27 @@ diskpartmenu(){
 	else
 		nextitem=${1}
 	fi
-  options+=("${txtautoparts} (gpt)" "")
+	options=()
+	if [ "${eficomputer}" == "0" ]; then
+		options+=("${txtautoparts} (gpt)" "")
+		options+=("${txtautoparts} (dos)" "")
+	else
+		options+=("${txtautoparts} (gpt,efi)" "")
+		options+=("${txtautoparts} (gpt)" "")
+		options+=("${txtautoparts} (dos)" "")
+		options+=("${txtautoparts} (gpt,bios+efi,noswap)" "")
+	fi
+	options+=("${txteditparts} (cfdisk)" "")
+	options+=("${txteditparts} (cgdisk)" "")
 	sel=$(dialog --backtitle "${apptitle}" --title "${txtdiskpartmenu}" --cancel-button "${txtback}" --default-item "${nextitem}" --menu "" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
 		case ${sel} in
+			"${txtautoparts} (dos)")
+				diskpartautodos
+				nextitem="${txtautoparts} (dos)"
+			;;
 			"${txtautoparts} (gpt)")
 				diskpartautogpt
 				nextitem="${txtautoparts} (gpt)"
@@ -158,8 +209,57 @@ diskpartmenu(){
 			"${txtautoparts} (gpt,efi)")
 				diskpartautoefi
 				nextitem="${txtautoparts} (gpt,efi)"
+			;;
+			"${txtautoparts} (gpt,bios+efi,noswap)")
+				diskpartautoefiusb
+				nextitem="${txtautoparts} (gpt,bios+efi,noswap)"
+			;;
+			"${txteditparts} (cfdisk)")
+				diskpartcfdisk
+				nextitem="${txteditparts} (cfdisk)"
+			;;
+			"${txteditparts} (cgdisk)")
+				diskpartcgdisk
+				nextitem="${txteditparts} (cgdisk)"
+			;;
 		esac
 		diskpartmenu "${nextitem}"
+	fi
+}
+
+
+diskpartautodos(){
+		device=$(selectdisk "${txtautoparts} (dos)")
+	if [ "$?" = "0" ]; then
+		if (dialog --backtitle "${apptitle}" --title "${txtautoparts} (dos)" --defaultno --yesno "${txtautopartsconfirm//%1/${device}}" 0 0) then
+			clear
+			echo "${txtautopartclear}"
+			parted ${device} mklabel msdos
+			sleep 1
+			echo "${txtautopartcreate//%1/boot}"
+			echo -e "n\np\n\n\n+512M\na\nw" | fdisk ${device}
+			sleep 1
+			echo "${txtautopartcreate//%1/swap}"
+			swapsize=$(cat /proc/meminfo | grep MemTotal | awk '{ print $2 }')
+			swapsize=$((${swapsize}/1000))"M"
+			echo -e "n\np\n\n\n+${swapsize}\nt\n\n82\nw" | fdisk ${device}
+			sleep 1
+			echo "${txtautopartcreate//%1/root}"
+			echo -e "n\np\n\n\n\nw" | fdisk ${device}
+			sleep 1
+			echo ""
+			pressanykey
+			if [ "${device::8}" == "/dev/nvm" ]; then
+				bootdev=${device}"p1"
+				swapdev=${device}"p2"
+				rootdev=${device}"p3"
+			else
+				bootdev=${device}"1"
+				swapdev=${device}"2"
+				rootdev=${device}"3"
+			fi
+			efimode="0"
+		fi
 	fi
 }
 
@@ -227,7 +327,52 @@ diskpartautoefi(){
 	fi
 }
 
+diskpartautoefiusb(){
+		device=$(selectdisk "${txtautoparts} (gpt,efi)")  
+	if [ "$?" = "0" ]; then
+		if (dialog --backtitle "${apptitle}" --title "${txtautoparts} (gpt,efi)" --defaultno --yesno "${txtautopartsconfirm//%1/${device}}" 0 0) then
+			clear
+			echo "${txtautopartclear}"
+			parted ${device} mklabel gpt
+			echo "${txtautopartcreate//%1/EFI boot}"
+			sgdisk ${device} -n=1:0:+1024M -t=1:ef00
+			echo "${txtautopartcreate//%1/BIOS boot}"
+			sgdisk ${device} -n=2:0:+31M -t=2:ef02
+			echo "${txtautopartcreate//%1/root}"
+			sgdisk ${device} -n=3:0:0
+			echo "${txthybridpartcreate}"
+			echo -e "r\nh\n3\nN\n\nY\nN\nw\nY\n" | gdisk ${device}
+			echo ""
+			pressanykey
+			if [ "${device::8}" == "/dev/nvm" ]; then
+				bootdev=${device}"p1"
+				swapdev=
+				rootdev=${device}"p3"
+			else
+				bootdev=${device}"1"
+				swapdev=
+				rootdev=${device}"3"
+			fi
+			efimode="2"
+		fi
+	fi
+}
 
+diskpartcfdisk(){
+		device=$( selectdisk "${txteditparts} (cfdisk)" )
+	if [ "$?" = "0" ]; then
+		clear
+		cfdisk ${device}
+	fi
+}
+
+diskpartcgdisk(){
+		device=$( selectdisk "${txteditparts} (cgdisk)" )
+	if [ "$?" = "0" ]; then
+		clear
+		cgdisk ${device}
+	fi
+}
 # --------------------------------------------------------
 
 
@@ -353,6 +498,9 @@ formatbootdevice(){
 	if [ "${efimode}" == "1" ]||[ "${efimode}" = "2" ]; then
 		options+=("fat32" "(EFI)")
 	fi
+	options+=("ext2" "")
+	options+=("ext3" "")
+	options+=("ext4" "")
 	if [ ! "${efimode}" = "1" ]&&[ ! "${efimode}" = "2" ]; then
 		options+=("fat32" "(EFI)")
 	fi
@@ -366,6 +514,18 @@ formatbootdevice(){
 	echo "${txtformatingpart//%1/${2}} ${sel}"
 	echo "----------------------------------------------"
 	case ${sel} in
+		ext2)
+			echo "mkfs.ext2 ${2}"
+			mkfs.ext2 ${2}
+		;;
+		ext3)
+			echo "mkfs.ext3 ${2}"
+			mkfs.ext3 ${2}
+		;;
+		ext4)
+			echo "mkfs.ext4 ${2}"
+			mkfs.ext4 ${2}
+		;;
 		fat32)
 			fspkgs="${fspkgs[@]} dosfstools"
 			echo "mkfs.fat ${2}"
@@ -401,6 +561,12 @@ formatdevice(){
 	options=()
 	options+=("btrfs" "")
 	options+=("ext4" "")
+	options+=("ext3" "")
+	options+=("ext2" "")
+	options+=("xfs" "")
+	options+=("f2fs" "")
+	options+=("jfs" "")
+	options+=("reiserfs" "")
 	if [ ! "${3}" = "noluks" ]; then
 		options+=("luks" "encrypted")
 	fi
@@ -428,6 +594,38 @@ formatdevice(){
 				btrfs subvolume set-default /mnt/root
 				umount /mnt
 			fi
+		;;
+		ext4)
+			echo "mkfs.ext4 ${2}"
+			mkfs.ext4 ${2}
+		;;
+		ext3)
+			echo "mkfs.ext3 ${2}"
+			mkfs.ext3 ${2}
+		;;
+		ext2)
+			echo "mkfs.ext2 ${2}"
+			mkfs.ext2 ${2}
+		;;
+		xfs)
+			fspkgs="${fspkgs[@]} xfsprogs"
+			echo "mkfs.xfs -f ${2}"
+			mkfs.xfs -f ${2}
+		;;
+		f2fs)
+			fspkgs="${fspkgs[@]} f2fs-tools"
+			echo "mkfs.f2fs -f $2"
+			mkfs.f2fs -f $2
+		;;
+		jfs)
+			fspkgs="${fspkgs[@]} jfsutils"
+			echo "mkfs.jfs -f ${2}"
+			mkfs.jfs -f ${2}
+		;;
+		reiserfs)
+			fspkgs="${fspkgs[@]} reiserfsprogs"
+			echo "mkfs.reiserfs -f ${2}"
+			mkfs.reiserfs -f ${2}
 		;;
 		luks)
 			echo "${txtcreateluksdevice}"
@@ -527,7 +725,10 @@ installmenu(){
 		nextitem=${1}
 	fi
 	options=()
+	#options+=("${txtselectmirrorsbycountry}" "(${txtoptional})")
+	options+=("${txteditmirrorlist}" "(${txtoptional})")
 	options+=("${txtfiltermirrorlist}" "reflector (${txtoptional})")
+	options+=("${txtparalleldownloads}" "(${txtoptional})")
 	options+=("${txtinstallarchlinux}" "pacstrap")
 	options+=("${txtconfigarchlinux}" "")
 	sel=$(dialog --backtitle "${apptitle}" --title "${txtinstallmenu}" --cancel-button "${txtunmount}" --default-item "${nextitem}" --menu "" 0 0 0 \
@@ -535,9 +736,21 @@ installmenu(){
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
 		case ${sel} in
+			"${txtselectmirrorsbycountry}")
+				selectmirrorsbycountry
+				nextitem="${txtinstallarchlinux}"
+			;;
+			"${txteditmirrorlist}")
+				${EDITOR} /etc/pacman.d/mirrorlist
+				nextitem="${txtinstallarchlinux}"
+			;;
 			"${txtfiltermirrorlist}")
 				filtermirrorlist
 				nextitem="${txtparalleldownloads}"
+			;;
+			"${txtparalleldownloads}")
+				paralleldownloads
+				nextitem="${txtinstallarchlinuk}"
 			;;
 			"${txtinstallarchlinux}")
 				if(installbase) then
@@ -553,6 +766,25 @@ installmenu(){
 	else
 		unmountdevices
 	fi
+}
+
+selectmirrorsbycountry() {
+		if [[ ! -f /etc/pacman.d/mirrorlist.backup ]]; then
+				cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
+		fi    
+		items=$( sed -n "/^##.*/N; {s/^## \(.*\)\nServer.*/\1/p}" < /etc/pacman.d/mirrorlist.backup | sort -u )
+		options=()
+		IFS_ORIG=$IFS
+		IFS=$'\n'
+		for item in ${items}; do
+				options+=("${item}" "")
+		done
+		IFS=$IFS_ORIG
+		country=$(dialog --backtitle "${APPTITLE}" --title "${txtselectcountry}" --menu "" 0 0 0 "${options[@]}" 3>&1 1>&2 2>&3)
+		if [ "$?" != "0" ]; then
+				return 1    
+		fi
+		sed "s/^\(Server .*\)/\#\1/;/^## $country/N; {s/^\(## .*\n\)\#Server \(.*\)/\1Server \2/}" < /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
 }
 
 filtermirrorlist() {
@@ -580,11 +812,29 @@ filtermirrorlist() {
 		esac		
 }
 
+paralleldownloads() {
+		numpkg=$(dialog --backtitle "${apptitle}" --title "${txtparallelprompt}" --inputbox "" 0 0 "5" 3>&1 1>&2 2>&3)
+                if [ "$?" = "0" ]; then
+			if [[ "$numpkg" =~ ^[1-9][0-9]*$ ]] ; then
+				sed -i "s/.*ParallelDownloads.*/ParallelDownloads = ${numpkg}/" /etc/pacman.conf
+			else
+				clear
+				unset numpkg
+				echo ${txtincorrectinput}
+                		pressanykey
+                        fi
+                fi
+		
+
+}
+
 installbase(){
 	pkgs="base"
 	options=()
 	options+=("linux" "")
+	options+=("linux-lts" "")
 	options+=("linux-zen" "")
+	options+=("linux-hardened" "")
 	sel=$(dialog --backtitle "${apptitle}" --title "${txtinstallarchlinuxkernel}" --menu "" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
@@ -786,9 +1036,37 @@ archmenu(){
 					nextitem="${txtbootloader}"
 				fi
 			;;
+			"${txtgenerate//%1/mkinitcpio.conf-nvme}")
+				archgenmkinitcpionvme
+				nextitem="${txtbootloader}"
+			;;
+			"${txtedit//%1/fstab}")
+				${EDITOR} /mnt/etc/fstab
+				nextitem="${txtedit//%1/fstab}"
+			;;
 			"${txtedit//%1/crypttab}")
 				${EDITOR} /mnt/etc/crypttab
 				nextitem="${txtedit//%1/crypttab}"
+			;;
+			"${txtedit//%1/mkinitcpio.conf}")
+				archeditmkinitcpio
+				nextitem="${txtedit//%1/mkinitcpio.conf}"
+			;;
+			"${txtedit//%1/mirrorlist}")
+				${EDITOR} /mnt/etc/pacman.d/mirrorlist
+				nextitem="${txtedit//%1/mirrorlist}"
+			;;
+			"${txtbootloader}")
+				archbootloadermenu
+				nextitem="${txtextrasmenu}"
+			;;
+			"${txtextrasmenu}")
+				archextrasmenu
+				nextitem="archdi"
+			;;
+			"archdi")
+				installarchdi
+				nextitem="archdi"
 			;;
 		esac
 		archmenu "${nextitem}"
