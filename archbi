@@ -30,6 +30,11 @@ mainmenu(){
 			"${txtselectpartsmenu}")
 				selectparts
 				nextitem="${txtreboot}"
+			;;
+			"${txtchangelog}")
+				showchangelog
+				nextitem="${txtreboot}"
+			;;			
 			"${txtreboot}")
 				rebootpc
 				nextitem="${txtreboot}"
