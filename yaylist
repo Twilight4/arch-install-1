@@ -8,7 +8,6 @@ wdisplays
 nwg-look-bin
 wlr-randr
 wl-clip-persist-git
-swaylockd
 tty-clock-git
 donut.c
 cava
