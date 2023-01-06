@@ -89,7 +89,7 @@ install-dotfiles() {
     sudo fc-cache -fv
     sudo rm /home/$(whoami)/.bash*
     sudo chmod 755 $XDG_CONFIG_HOME/hypr/scripts/*
-    sudo chmod 755 $XDG_CONFIG_HOME/waybar/scripts/check-updates.sh
+    sudo chmod 755 $XDG_CONFIG_HOME/waybar/scripts/*
     sudo chmod 755 $HOME/.config/rofi/applets/bin/*
     sudo chmod 755 $XDG_CONFIG_HOME/rofi/applets/shared/theme.bash
     sudo chmod 755 $XDG_CONFIG_HOME/rofi/launcher/launcher.sh
