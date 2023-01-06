@@ -21,7 +21,6 @@ lsd
 fzf
 ripgrep
 bat
-man
 playerctl
 ffmpeg
 wl-clipboard
