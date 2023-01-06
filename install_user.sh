@@ -88,7 +88,6 @@ install-dotfiles() {
     sudo rm "/home/$(whoami)/.config/.local/share/fonts/README.md"
     sudo fc-cache -fv
     sudo rm /home/$(whoami)/.bash*
-    sudo chmod 755 $HOME/.config/.local/bin/wrappedh1
     sudo chmod 755 $XDG_CONFIG_HOME/hypr/scripts/*
     sudo chmod 755 $XDG_CONFIG_HOME/waybar/scripts/check-updates.sh
     sudo chmod 755 $HOME/.config/rofi/applets/bin/*
