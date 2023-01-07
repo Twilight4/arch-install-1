@@ -149,7 +149,17 @@ userpass_selector () {
     return 0
 }
 
-
+# Microcode detector
+microcode_detector () {
+    CPU=$(grep vendor_id /proc/cpuinfo)
+    if [[ "$CPU" == *"AuthenticAMD"* ]]; then
+        info_print "An AMD CPU has been detected, the AMD microcode will be installed."
+        microcode="amd-ucode"
+    else
+        info_print "An Intel CPU has been detected, the Intel microcode will be installed."
+        microcode="intel-ucode"
+    fi
+}
 
 
 
@@ -288,3 +298,132 @@ cat << EOF >> /mnt/@/.snapshots/1/info.xml
 EOF
 
 chmod 600 /mnt/@/.snapshots/1/info.xml
+
+
+
+
+
+# Checking the microcode to install.
+microcode_detector
+
+# Pacstrap (setting up a base sytem onto the new root).
+info_print "Installing the base system."
+pacstrap -K /mnt base "$kernel" "$microcode" linux-firmware "$kernel"-headers btrfs-progs grub grub-btrfs rsync efibootmgr snapper reflector snap-pac zram-generator sudo &>/dev/null
+
+# Setting up the hostname.
+echo "$hostname" > /mnt/etc/hostname
+
+# Generating /etc/fstab.
+echo "Generating a new fstab."
+genfstab -U /mnt >> /mnt/etc/fstab
+sed -i 's#,subvolid=258,subvol=/@/.snapshots/1/snapshot,subvol=@/.snapshots/1/snapshot##g' /mnt/etc/fstab
+
+# Configure selected locale and console keymap
+sed -i "/^#$locale/s/^#//" /mnt/etc/locale.gen
+echo "LANG=$locale" > /mnt/etc/locale.conf
+echo "KEYMAP=$kblayout" > /mnt/etc/vconsole.conf
+
+# Setting hosts file.
+info_print "Setting hosts file."
+cat > /mnt/etc/hosts <<EOF
+127.0.0.1   localhost
+::1         localhost
+127.0.1.1   $hostname.localdomain   $hostname
+EOF
+
+# Virtualization check.
+virt_check
+
+# Configuring /etc/mkinitcpio.conf
+echo "Configuring /etc/mkinitcpio for ZSTD compression and LUKS hook."
+sed -i 's,#COMPRESSION="zstd",COMPRESSION="zstd",g' /mnt/etc/mkinitcpio.conf
+sed -i 's,modconf block filesystems keyboard,keyboard modconf block encrypt filesystems,g' /mnt/etc/mkinitcpio.conf
+
+# Enabling LUKS in GRUB and setting the UUID of the LUKS container.
+UUID=$(blkid $cryptroot | cut -f2 -d'"')
+sed -i 's/#\(GRUB_ENABLE_CRYPTODISK=y\)/\1/' /mnt/etc/default/grub
+echo "" >> /mnt/etc/default/grub
+echo -e "# Booting with BTRFS subvolume\nGRUB_BTRFS_OVERRIDE_BOOT_PARTITION_DETECTION=true" >> /mnt/etc/default/grub
+sed -i 's#rootflags=subvol=${rootsubvol}##g' /mnt/etc/grub.d/10_linux
+sed -i 's#rootflags=subvol=${rootsubvol}##g' /mnt/etc/grub.d/20_linux_xen
+
+# Configuring the system.
+info_print "Configuring the system (timezone, system clock, initramfs, Snapper, GRUB)."
+arch-chroot /mnt /bin/bash -e <<EOF
+    # Setting up timezone.
+    ln -sf /usr/share/zoneinfo/$(curl -s http://ip-api.com/line?fields=timezone) /etc/localtime &>/dev/null
+    
+    # Setting up clock.
+    hwclock --systohc
+    
+    # Generating locales.
+    locale-gen &>/dev/null
+    
+    # Generating a new initramfs.
+    mkinitcpio -P &>/dev/null
+    
+    # Snapper configuration.
+    umount /.snapshots
+    rm -r /.snapshots
+    snapper --no-dbus -c root create-config /
+    btrfs subvolume delete /.snapshots &>/dev/null
+    mkdir /.snapshots
+    mount -a &>/dev/null
+    chmod 750 /.snapshots
+    
+    # Installing GRUB.
+    echo "Installing GRUB on /boot."
+    grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB --modules="normal test efi_gop efi_uga search echo linux all_video gfxmenu gfxterm_background gfxterm_menu gfxterm loadenv configfile gzio part_gpt cryptodisk luks gcry_rijndael gcry_sha256 btrfs" --disable-shim-lock &>/dev/null
+    
+    # Creating grub config file.
+    echo "Creating GRUB config file."
+    grub-mkconfig -o /boot/grub/grub.cfg &>/dev/null
+    
+    # Adding user with sudo privilege
+    if [ -n "$username" ]; then
+        echo "Adding $username with root privilege."
+        useradd -m $username
+        usermod -aG wheel $username
+        groupadd -r audit
+        gpasswd -a $username audit
+    fi
+EOF
+
+# Setting root password.
+info_print "Setting root password."
+echo "root:$rootpass" | arch-chroot /mnt chpasswd
+
+# Setting user password.
+if [[ -n "$username" ]]; then
+    echo "%wheel ALL=(ALL:ALL) ALL" > /mnt/etc/sudoers.d/wheel
+    info_print "Adding the user $username to the system with root privilege."
+    arch-chroot /mnt useradd -m -G wheel -s /bin/bash "$username"
+    info_print "Setting user password for $username."
+    echo "$username:$userpass" | arch-chroot /mnt chpasswd
+fi
+
+# Giving wheel user sudo access.
+sed -i 's/# \(%wheel ALL=(ALL\(:ALL\|\)) ALL\)/\1/g' /mnt/etc/sudoers
+
+# ZRAM configuration
+info_print "Configuring ZRAM."
+bash -c 'cat > /mnt/etc/systemd/zram-generator.conf' <<-'EOF'
+[zram0]
+zram-fraction = 1
+max-zram-size = 8192
+EOF
+
+# Pacman eye-candy features.
+info_print "Enabling colours, animations, and parallel downloads for pacman."
+sed -Ei 's/^#(Color)$/\1\nILoveCandy/;s/^#(ParallelDownloads).*/\1 = 10/' /mnt/etc/pacman.conf
+
+# Enabling various services.
+info_print "Enabling Reflector, automatic snapshots, BTRFS scrubbing and systemd-oomd."
+services=(reflector.timer snapper-timeline.timer snapper-cleanup.timer grub-btrfs.path systemd-oomd)
+for service in "${services[@]}"; do
+    systemctl enable "$service" --root=/mnt &>/dev/null
+done
+
+# Finishing up.
+info_print "Done, you may now wish to reboot (further changes can be done by chrooting into /mnt)."
+exit
