@@ -137,21 +137,21 @@ set-leftovers() {
     #echo "127.0.0.1 localhost" >> /etc/hosts
     #echo "::1       localhost" >> /etc/hosts
     #echo "127.0.1.1 arch.localdomain arch" >> /etc/hosts
-    curl https://raw.githubusercontent.com/Twilight4/arch-install-1/master/sudoers  > /etc/sudoers
+    curl https://raw.githubusercontent.com/Twilight4/arch-install/master/sudoers  > /etc/sudoers
     # Enable the systemd service NetworkManager.
     pacman -S --noconfirm networkmanager
     systemctl enable NetworkManager.service
-    curl https://raw.githubusercontent.com/Twilight4/arch-install-1/master/pacman.conf > /etc/pacman.conf
+    curl https://raw.githubusercontent.com/Twilight4/arch-install/master/pacman.conf > /etc/pacman.conf
     pacman -Sy
     rmmod pcspkr
     echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf
-    curl https://raw.githubusercontent.com/Twilight4/arch-install/main/grub > /etc/default/grub
+    curl https://raw.githubusercontent.com/Twilight4/arch-install-old/main/grub > /etc/default/grub
     grub-mkconfig -o /boot/grub/grub.cfg
     
     # Performance tweaks
     curl https://raw.githubusercontent.com/Twilight4/arch-install/master/makepkg.conf > /etc/makepkg.conf            # Parallel compilation and building from files in memory tweak
-    curl https://raw.githubusercontent.com/Twilight4/arch-install/master/98-misc.conf > /etc/sysctl.d/98-misc.conf   # Improve virtual memory performance
-    curl https://raw.githubusercontent.com/Twilight4/arch-install/master/mkinitcpio.conf > /etc/mkinitcpio.conf      # lz4 for fast compression - improved boot time performance
+    curl https://raw.githubusercontent.com/Twilight4/arch-install-old/master/98-misc.conf > /etc/sysctl.d/98-misc.conf   # Improve virtual memory performance
+    curl https://raw.githubusercontent.com/Twilight4/arch-install-old/master/mkinitcpio.conf > /etc/mkinitcpio.conf      # lz4 for fast compression - improved boot time performance
     sudo mkinitcpio -P                                                             
 
 }
