@@ -327,21 +327,21 @@ microcode_detector
 
 # Pacstrap (setting up a base sytem onto the new root)
 info_print "Installing the base system."
-pacstrap -K /mnt base "$kernel" "$microcode" linux-firmware "$kernel"-headers grub grub-btrfs snapper snap-pac efibootmgr sudo reflector networkmanager apparmor zram-generator pipewire-pulse pipewire-alsa pipewire-jack firewalld chrony &>/dev/null
+pacstrap -K /mnt base "$kernel" "$microcode" linux-firmware "$kernel"-headers grub grub-btrfs snapper snap-pac efibootmgr sudo reflector networkmanager apparmor zram-generator pipewire-pulse pipewire-alsa firewalld chrony &>/dev/null
 
 # Routing jack2 through PipeWire
-echo "/usr/lib/pipewire-0.3/jack" > /mnt/etc/ld.so.conf.d/pipewire-jack.conf
+#echo "/usr/lib/pipewire-0.3/jack" > /mnt/etc/ld.so.conf.d/pipewire-jack.conf
 
 # Setting up the hostname
 echo "$hostname" > /mnt/etc/hostname
 
 # Generating /etc/fstab
-echo "Generating a new fstab."
+info_print "Generating a new fstab."
 genfstab -U /mnt >> /mnt/etc/fstab
 sed -i 's#,subvolid=258,subvol=/@/.snapshots/1/snapshot,subvol=@/.snapshots/1/snapshot##g' /mnt/etc/fstab
 
 # Configure selected locale and console keymap
-sed -i "/^#$locale/s/^#//" /mnt/etc/locale.gen
+echo "$locale.UTF-8 UTF-8" > /mnt/etc/locale.gen
 echo "LANG=$locale" > /mnt/etc/locale.conf
 echo "KEYMAP=$kblayout" > /mnt/etc/vconsole.conf
 
