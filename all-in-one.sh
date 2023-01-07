@@ -468,11 +468,6 @@ EOF
 
 chmod 600 /mnt/etc/NetworkManager/conf.d/ip6-privacy.conf
 
-
-######################################################################
-# Performance Enhancments
-######################################################################
-
 # Parallel compilation and building from files in memory tweak
 curl https://raw.githubusercontent.com/Twilight4/arch-install/main/makepkg.conf > /mnt/etc/makepkg.conf
 
@@ -486,10 +481,6 @@ vm.overcommit_memory=1
 vm.swappiness=10
 vm.vfs_cache_pressure=50
 EOF
-
-# lz4 for fast compression - improved boot time performance
-#curl https://raw.githubusercontent.com/Twilight4/arch-install/master/mkinitcpio.conf > /etc/mkinitcpio.conf
-#mkinitcpio -P
 
 ######################################################################
 # Configuring the system
@@ -577,6 +568,15 @@ systemctl disable systemd-timesyncd --root=/mnt &>/dev/null
 sed -i 's/022/077/g' /mnt/etc/profile
 echo "" >> /mnt/etc/bash.bashrc
 echo "umask 077" >> /mnt/etc/bash.bashrc
+
+# Installing user script
+input_print "Do you want to install Twilight4's user installation script [y/N]?: "
+read -r disk_response
+if ! [[ "${disk_response,,}" =~ ^(yes|y)$ ]]; then
+    curl https://raw.githubusercontent.com/Twilight4/dotfiles/main/install.sh > /home/$username/install.sh
+    info_print "Twilight4's dotfiles script installed"
+    exit
+fi
 
 # Finishing up
 info_print "Done, you may now wish to reboot (further changes can be done by chrooting into /mnt)."
