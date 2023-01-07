@@ -571,8 +571,8 @@ echo "umask 077" >> /mnt/etc/bash.bashrc
 
 # Installing user script
 input_print "Do you want to install Twilight4's user installation script [y/N]?: "
-read -r disk_response
-if ! [[ "${disk_response,,}" =~ ^(yes|y)$ ]]; then
+read -r script_response
+if ! [[ "${script_response,,}" =~ ^(yes|y)$ ]]; then
     curl https://raw.githubusercontent.com/Twilight4/dotfiles/main/install.sh > /home/$username/install.sh
     info_print "Twilight4's dotfiles script installed"
     exit
