@@ -102,7 +102,7 @@ d8888P dP  dP  dP dP 88 dP .d8888b. 88d888b. d8888P M  MMMMM  M M.      `YM
                                 .88                 MMMMMMMMMMM MMMMMMMMMMM 
                             d8888P                                          
 ${RESET}"
-info_print "Welcome to Twilight4's OS isntallation script, a script made in order to simplify the process of installing Arch Linux."
+info_print "Welcome to Twilight4s OS isntallation script, a script made in order to simplify the process of installing Arch Linux."
 
-# Setting up keyboard layout.
+# Setting up keyboard layout
 until keyboard_selector; do : ; done
