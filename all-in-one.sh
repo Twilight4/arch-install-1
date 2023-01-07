@@ -90,6 +90,68 @@ keyboard_selector () {
     esac
 }
 
+# User chooses the locale
+locale_selector () {
+    input_print "Please insert the locale you use (format: xx_XX. Enter empty to use en_US, or \"/\" to search locales): " locale
+    read -r locale
+    case "$locale" in
+        '') locale="en_US.UTF-8"
+            info_print "$locale will be the default locale."
+            return 0;;
+        '/') sed -E '/^# +|^#$/d;s/^#| *$//g;s/ .*/ (Charset:&)/' /etc/locale.gen | less -M
+                clear
+                return 1;;
+        *)  if ! grep -q "^#\?$(sed 's/[].*[]/\\&/g' <<< "$locale") " /etc/locale.gen; then
+                error_print "The specified locale doesn't exist."
+                return 1
+            fi
+            return 0
+    esac
+}
+
+# User enters a hostname
+hostname_selector () {
+    input_print "Please enter the hostname: "
+    read -r hostname
+    if [[ -z "$hostname" ]]; then
+        error_print "You need to enter a hostname in order to continue."
+        return 1
+    fi
+    return 0
+}
+
+# Setting up a password for the root account
+rootpass_selector () {
+    input_print "Please enter a password for the root user: "
+    read -r -s rootpass
+    if [[ -z "$rootpass" ]]; then
+        echo
+        error_print "You need to enter a password for the root user, please try again."
+        return 1
+    fi
+    return 0
+}
+
+# Setting up the user account
+userpass_selector () {
+    input_print "Please enter name for a user account (leave empty to skip): "
+    read -r username
+    if [[ -z "$username" ]]; then
+        return 0
+    fi
+    input_print "Please enter a password for $username: "
+    read -r -s userpass
+    if [[ -z "$userpass" ]]; then
+        echo
+        error_print "You need to enter a password for $username, please try again."
+        return 1
+    fi
+    return 0
+}
+
+
+
+
 
 # Welcome screen
 echo -ne "${BOLD}${BYELLOW}
@@ -104,5 +166,125 @@ d8888P dP  dP  dP dP 88 dP .d8888b. 88d888b. d8888P M  MMMMM  M M.      `YM
 ${RESET}"
 info_print "Welcome to Twilight4s OS isntallation script, a script made in order to simplify the process of installing Arch Linux."
 
+# Choosing the target for the installation.
+info_print "Available disks for the installation:"
+PS3="Please select the number of the corresponding disk: "
+select ENTRY in $(lsblk -dpnoNAME|grep -P "/dev/sd|nvme|vd");
+do
+    DISK="$ENTRY"
+    info_print "Arch Linux will be installed on the following disk: $DISK"
+    break
+done
+
+# Warn user about deletion of old partition scheme.
+input_print "This will delete the current partition table on $DISK once installation starts. Do you agree [y/N]?: "
+read -r disk_response
+if ! [[ "${disk_response,,}" =~ ^(yes|y)$ ]]; then
+    error_print "Quitting."
+    exit
+fi
+
+# Setting up the kernel.
+until kernel_selector; do : ; done
+
 # Setting up keyboard layout
 until keyboard_selector; do : ; done
+
+# User choses the locale.
+until locale_selector; do : ; done
+
+# User choses the hostname.
+until hostname_selector; do : ; done
+
+# User sets up the root/user accounts.
+until rootpass_selector; do : ; done
+until userpass_selector; do : ; done
+
+# formatting the disk
+info_print "Wiping $DISK."
+wipefs -af "$DISK" &>/dev/null
+sgdisk -Zo "$DISK" &>/dev/null
+
+# Creating a new partition scheme.
+echo "Creating new partition scheme on $DISK."
+parted -s "$DISK" \
+    mklabel gpt \
+    mkpart ESP fat32 1MiB 128MiB \
+    set 1 esp on \
+    mkpart cryptroot 128MiB 100% \
+    
+sleep 0.1
+ESP="/dev/$(lsblk $DISK -o NAME,PARTLABEL | grep ESP| cut -d " " -f1 | cut -c7-)"
+cryptroot="/dev/$(lsblk $DISK -o NAME,PARTLABEL | grep cryptroot | cut -d " " -f1 | cut -c7-)"
+
+# Informing the Kernel of the changes.
+echo "Informing the Kernel about the disk changes."
+partprobe "$DISK"
+
+# Formatting the ESP as FAT32.
+echo "Formatting the EFI Partition as FAT32."
+mkfs.fat -F 32 -s 2 $ESP &>/dev/null
+
+# Creating a LUKS Container for the root partition.
+echo "Creating LUKS Container for the root partition."
+cryptsetup luksFormat --type luks1 $cryptroot
+echo "Opening the newly created LUKS Container."
+cryptsetup open $cryptroot cryptroot
+BTRFS="/dev/mapper/cryptroot"
+
+# Formatting the LUKS Container as BTRFS.
+echo "Formatting the LUKS container as BTRFS."
+mkfs.btrfs $BTRFS &>/dev/null
+mount -o clear_cache,nospace_cache $BTRFS /mnt
+
+# Creating BTRFS subvolumes.
+echo "Creating BTRFS subvolumes."
+btrfs su cr /mnt/@ &>/dev/null
+btrfs su cr /mnt/@/.snapshots &>/dev/null
+mkdir -p /mnt/@/.snapshots/1 &>/dev/null
+btrfs su cr /mnt/@/.snapshots/1/snapshot &>/dev/null
+btrfs su cr /mnt/@/boot/ &>/dev/null
+btrfs su cr /mnt/@/home &>/dev/null
+btrfs su cr /mnt/@/root &>/dev/null
+btrfs su cr /mnt/@/srv &>/dev/null
+btrfs su cr /mnt/@/var_log &>/dev/null
+btrfs su cr /mnt/@/var_log_journal &>/dev/null
+btrfs su cr /mnt/@/var_crash &>/dev/null
+btrfs su cr /mnt/@/var_cache &>/dev/null
+btrfs su cr /mnt/@/var_tmp &>/dev/null
+btrfs su cr /mnt/@/var_spool &>/dev/null
+btrfs su cr /mnt/@/var_lib_libvirt_images &>/dev/null
+btrfs su cr /mnt/@/var_lib_machines &>/dev/null
+btrfs su cr /mnt/@/var_lib_gdm &>/dev/null
+btrfs su cr /mnt/@/var_lib_AccountsService &>/dev/null
+btrfs su cr /mnt/@/cryptkey &>/dev/null
+
+chattr +C /mnt/@/boot
+chattr +C /mnt/@/srv
+chattr +C /mnt/@/var_log
+chattr +C /mnt/@/var_log_journal
+chattr +C /mnt/@/var_crash
+chattr +C /mnt/@/var_cache
+chattr +C /mnt/@/var_tmp
+chattr +C /mnt/@/var_spool
+chattr +C /mnt/@/var_lib_libvirt_images
+chattr +C /mnt/@/var_lib_machines
+chattr +C /mnt/@/var_lib_gdm
+chattr +C /mnt/@/var_lib_AccountsService
+chattr +C /mnt/@/cryptkey
+
+#Set the default BTRFS Subvol to Snapshot 1 before pacstrapping
+btrfs subvolume set-default "$(btrfs subvolume list /mnt | grep "@/.snapshots/1/snapshot" | grep -oP '(?<=ID )[0-9]+')" /mnt
+
+cat << EOF >> /mnt/@/.snapshots/1/info.xml
+<?xml version="1.0"?>
+<snapshot>
+  <type>single</type>
+  <num>1</num>
+  <date>1999-03-31 0:00:00</date>
+  <description>First Root Filesystem</description>
+  <cleanup>number</cleanup>
+</snapshot>
+EOF
+
+chmod 600 /mnt/@/.snapshots/1/info.xml
