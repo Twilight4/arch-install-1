@@ -512,7 +512,7 @@ echo "root:$rootpass" | arch-chroot /mnt chpasswd
 
 # Setting user password
 if [[ -n "$username" ]]; then
-    echo "%wheel ALL=(ALL:ALL) ALL" > /mnt/etc/sudoers.d/wheel
+    #echo "%wheel ALL=(ALL:ALL) ALL" > /mnt/etc/sudoers.d/wheel    # Giving wheel user sudo access
     info_print "Adding the user $username to the system with root privilege."
     arch-chroot /mnt useradd -m -G wheel -s /bin/bash "$username"
     info_print "Setting user password for $username."
