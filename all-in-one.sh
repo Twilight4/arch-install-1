@@ -211,9 +211,12 @@ until hostname_selector; do : ; done
 until rootpass_selector; do : ; done
 until userpass_selector; do : ; done
 
-# Updating the live environment and installing curl
-pacman -Sy
-pacman -S --noconfirm curl
+# Fixing the oudated keyring issue
+pacman -Syy
+pacman -S --noconfirm archlinux-keyring
+pacman-key --init
+pacman-key --populate
+pacman -Syy
 
 # formatting the disk
 info_print "Wiping $DISK."
@@ -470,7 +473,23 @@ chmod 600 /mnt/etc/NetworkManager/conf.d/ip6-privacy.conf
 # Performance Enhancments
 ######################################################################
 
+# Parallel compilation and building from files in memory tweak
+curl https://raw.githubusercontent.com/Twilight4/arch-install/main/makepkg.conf > /mnt/etc/makepkg.conf
 
+# Improve virtual memory performance
+bash -c 'cat > /mnt/etc/sysctl.d/98-misc.conf' <<-'EOF'
+vm.dirty_background_ratio=15
+vm.dirty_ratio=40
+vm.oom_dump_tasks=0
+vm.oom_kill_allocating_task=1
+vm.overcommit_memory=1
+vm.swappiness=10
+vm.vfs_cache_pressure=50
+EOF
+
+# lz4 for fast compression - improved boot time performance
+#curl https://raw.githubusercontent.com/Twilight4/arch-install/master/mkinitcpio.conf > /etc/mkinitcpio.conf
+#mkinitcpio -P
 
 ######################################################################
 # Configuring the system
@@ -532,12 +551,17 @@ fi
 #sed -i 's/# \(%wheel ALL=(ALL\(:ALL\|\)) ALL\)/\1/g' /mnt/etc/sudoers
 curl https://raw.githubusercontent.com/Twilight4/arch-install/main/sudoers > /mnt/etc/sudoers
 
+# Blacklist beep
+rmmod pcspkr
+echo "blacklist pcspkr" > /mnt/etc/modprobe.d/nobeep.conf
+
+# Pacman configuration
+info_print "Enabling colours, animations, and parallel downloads for pacman."
+#sed -Ei 's/^#(Color)$/\1\nILoveCandy/;s/^#(ParallelDownloads).*/\1 = 10/' /mnt/etc/pacman.conf
+curl https://raw.githubusercontent.com/Twilight4/arch-install/main/pacman.conf > /mnt/etc/pacman.conf
+
 # Change audit logging group
 echo "log_group = audit" >> /mnt/etc/audit/auditd.conf
-
-# Pacman eye-candy features
-info_print "Enabling colours, animations, and parallel downloads for pacman."
-sed -Ei 's/^#(Color)$/\1\nILoveCandy/;s/^#(ParallelDownloads).*/\1 = 10/' /mnt/etc/pacman.conf
 
 # Enabling various services
 info_print "Enabling Reflector, automatic snapshots, BTRFS scrubbing and systemd-oomd."
