@@ -60,3 +60,6 @@ cowsay
 ufw
 irqbalance
 pass
+tmux
+tmuxp
+wget
