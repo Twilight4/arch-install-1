@@ -211,6 +211,10 @@ until hostname_selector; do : ; done
 until rootpass_selector; do : ; done
 until userpass_selector; do : ; done
 
+# Updating the live environment and installing curl
+pacman -Sy
+pacman -S --noconfirm curl
+
 # formatting the disk
 info_print "Wiping $DISK."
 wipefs -af "$DISK" &>/dev/null
@@ -463,6 +467,12 @@ chmod 600 /mnt/etc/NetworkManager/conf.d/ip6-privacy.conf
 
 
 ######################################################################
+# Performance Enhancments
+######################################################################
+
+
+
+######################################################################
 # Configuring the system
 ######################################################################
 info_print "Configuring the system (timezone, system clock, initramfs, Snapper, GRUB)."
@@ -512,15 +522,15 @@ echo "root:$rootpass" | arch-chroot /mnt chpasswd
 
 # Setting user password
 if [[ -n "$username" ]]; then
-    #echo "%wheel ALL=(ALL:ALL) ALL" > /mnt/etc/sudoers.d/wheel    # Giving wheel user sudo access
-    info_print "Adding the user $username to the system with root privilege."
+    info_print "Adding the user $username to the system with sudo access."
     arch-chroot /mnt useradd -m -G wheel -s /bin/bash "$username"
     info_print "Setting user password for $username."
     echo "$username:$userpass" | arch-chroot /mnt chpasswd
 fi
 
 # Giving wheel user sudo access
-sed -i 's/# \(%wheel ALL=(ALL\(:ALL\|\)) ALL\)/\1/g' /mnt/etc/sudoers
+#sed -i 's/# \(%wheel ALL=(ALL\(:ALL\|\)) ALL\)/\1/g' /mnt/etc/sudoers
+curl https://raw.githubusercontent.com/Twilight4/arch-install/main/sudoers > /mnt/etc/sudoers
 
 # Change audit logging group
 echo "log_group = audit" >> /mnt/etc/audit/auditd.conf
