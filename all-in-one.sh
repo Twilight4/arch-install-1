@@ -233,7 +233,7 @@ info_print "Informing the Kernel about the disk changes."
 partprobe "$DISK"
 
 # Formatting the ESP as FAT32
-echo "Formatting the EFI Partition as FAT32."
+info_print "Formatting the EFI Partition as FAT32."
 mkfs.fat -F 32 -s 2 $ESP &>/dev/null
 
 # Creating a LUKS Container for the root partition
