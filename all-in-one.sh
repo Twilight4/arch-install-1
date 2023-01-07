@@ -162,8 +162,9 @@ microcode_detector () {
 }
 
 
-
+######################################################################
 # Welcome screen - starting installation
+######################################################################
 echo -ne "${BOLD}${BYELLOW}
 ======================================================================
 TTTTTTT            iii lll iii         hh      tt     OOOOO   SSSSS  
@@ -176,7 +177,7 @@ TTTTTTT            iii lll iii         hh      tt     OOOOO   SSSSS
 ${RESET}"
 info_print "Welcome to Twilight4s OS installation script made in order to simplify the process of installing Arch Linux."
 
-# Choosing the target for the installation.
+# Choosing the target for the installation
 info_print "Available disks for the installation:"
 PS3="Please select the number of the corresponding disk: "
 select ENTRY in $(lsblk -dpnoNAME|grep -P "/dev/sd|nvme|vd");
@@ -186,7 +187,7 @@ do
     break
 done
 
-# Warn user about deletion of old partition scheme.
+# Warn user about deletion of old partition scheme
 input_print "This will delete the current partition table on $DISK once installation starts. Do you agree [y/N]?: "
 read -r disk_response
 if ! [[ "${disk_response,,}" =~ ^(yes|y)$ ]]; then
@@ -194,19 +195,19 @@ if ! [[ "${disk_response,,}" =~ ^(yes|y)$ ]]; then
     exit
 fi
 
-# Setting up the kernel.
+# Setting up the kernel
 until kernel_selector; do : ; done
 
 # Setting up keyboard layout
 until keyboard_selector; do : ; done
 
-# User choses the locale.
+# User choses the locale
 until locale_selector; do : ; done
 
-# User choses the hostname.
+# User choses the hostname
 until hostname_selector; do : ; done
 
-# User sets up the root/user accounts.
+# User sets up the root/user accounts
 until rootpass_selector; do : ; done
 until userpass_selector; do : ; done
 
@@ -215,8 +216,8 @@ info_print "Wiping $DISK."
 wipefs -af "$DISK" &>/dev/null
 sgdisk -Zo "$DISK" &>/dev/null
 
-# Creating a new partition scheme.
-echo "Creating new partition scheme on $DISK."
+# Creating a new partition scheme
+info_print "Creating new partition scheme on $DISK."
 parted -s "$DISK" \
     mklabel gpt \
     mkpart ESP fat32 1MiB 128MiB \
@@ -227,28 +228,28 @@ sleep 0.1
 ESP="/dev/$(lsblk $DISK -o NAME,PARTLABEL | grep ESP| cut -d " " -f1 | cut -c7-)"
 cryptroot="/dev/$(lsblk $DISK -o NAME,PARTLABEL | grep cryptroot | cut -d " " -f1 | cut -c7-)"
 
-# Informing the Kernel of the changes.
-echo "Informing the Kernel about the disk changes."
+# Informing the Kernel of the changes
+info_print "Informing the Kernel about the disk changes."
 partprobe "$DISK"
 
-# Formatting the ESP as FAT32.
+# Formatting the ESP as FAT32
 echo "Formatting the EFI Partition as FAT32."
 mkfs.fat -F 32 -s 2 $ESP &>/dev/null
 
-# Creating a LUKS Container for the root partition.
-echo "Creating LUKS Container for the root partition."
+# Creating a LUKS Container for the root partition
+info_print "Creating LUKS Container for the root partition."
 cryptsetup luksFormat --type luks1 $cryptroot
-echo "Opening the newly created LUKS Container."
+info_print "Opening the newly created LUKS Container."
 cryptsetup open $cryptroot cryptroot
 BTRFS="/dev/mapper/cryptroot"
 
-# Formatting the LUKS Container as BTRFS.
-echo "Formatting the LUKS container as BTRFS."
+# Formatting the LUKS Container as BTRFS
+info_print "Formatting the LUKS container as BTRFS."
 mkfs.btrfs $BTRFS &>/dev/null
 mount -o clear_cache,nospace_cache $BTRFS /mnt
 
-# Creating BTRFS subvolumes.
-echo "Creating BTRFS subvolumes."
+# Creating BTRFS subvolumes
+info_print "Creating BTRFS subvolumes."
 btrfs su cr /mnt/@ &>/dev/null
 btrfs su cr /mnt/@/.snapshots &>/dev/null
 mkdir -p /mnt/@/.snapshots/1 &>/dev/null
@@ -283,7 +284,7 @@ chattr +C /mnt/@/var_lib_gdm
 chattr +C /mnt/@/var_lib_AccountsService
 chattr +C /mnt/@/cryptkey
 
-#Set the default BTRFS Subvol to Snapshot 1 before pacstrapping
+# Set the default BTRFS Subvol to Snapshot 1 before pacstrapping
 btrfs subvolume set-default "$(btrfs subvolume list /mnt | grep "@/.snapshots/1/snapshot" | grep -oP '(?<=ID )[0-9]+')" /mnt
 
 cat << EOF >> /mnt/@/.snapshots/1/info.xml
@@ -299,9 +300,9 @@ EOF
 
 chmod 600 /mnt/@/.snapshots/1/info.xml
 
-# Mounting the newly created subvolumes.
+# Mounting the newly created subvolumes
 umount /mnt
-echo "Mounting the newly created subvolumes."
+info_print "Mounting the newly created subvolumes."
 mount -o ssd,noatime,space_cache,compress=zstd:15 $BTRFS /mnt
 mkdir -p /mnt/{boot,root,home,.snapshots,srv,tmp,/var/log,/var/crash,/var/cache,/var/tmp,/var/spool,/var/lib/libvirt/images,/var/lib/machines,/var/lib/gdm,/var/lib/AccountsService,/cryptkey}
 mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodev,nosuid,noexec,subvol=@/boot $BTRFS /mnt/boot
@@ -311,7 +312,7 @@ mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,su
 mount -o ssd,noatime,space_cache=v2.autodefrag,compress=zstd:15,discard=async,subvol=@/srv $BTRFS /mnt/srv
 mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodatacow,nodev,nosuid,noexec,subvol=@/var_log $BTRFS /mnt/var/log
 
-# The encryption is splitted as we do not want to include it in the backup with snap-pac.
+# The encryption is splitted as we do not want to include it in the backup with snap-pac
 mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodatacow,nodev,nosuid,noexec,subvol=@/cryptkey $BTRFS /mnt/cryptkey
 
 mkdir -p /mnt/boot/efi
@@ -321,17 +322,17 @@ mount -o nodev,nosuid,noexec $ESP /mnt/boot/efi
 ######################################################################
 # Installing Base System
 ######################################################################
-# Checking the microcode to install.
+# Checking the microcode to install
 microcode_detector
 
-# Pacstrap (setting up a base sytem onto the new root).
+# Pacstrap (setting up a base sytem onto the new root)
 info_print "Installing the base system."
 pacstrap -K /mnt base "$kernel" "$microcode" linux-firmware "$kernel"-headers btrfs-progs grub grub-btrfs rsync efibootmgr snapper reflector snap-pac zram-generator sudo &>/dev/null
 
-# Setting up the hostname.
+# Setting up the hostname
 echo "$hostname" > /mnt/etc/hostname
 
-# Generating /etc/fstab.
+# Generating /etc/fstab
 echo "Generating a new fstab."
 genfstab -U /mnt >> /mnt/etc/fstab
 sed -i 's#,subvolid=258,subvol=/@/.snapshots/1/snapshot,subvol=@/.snapshots/1/snapshot##g' /mnt/etc/fstab
@@ -341,7 +342,7 @@ sed -i "/^#$locale/s/^#//" /mnt/etc/locale.gen
 echo "LANG=$locale" > /mnt/etc/locale.conf
 echo "KEYMAP=$kblayout" > /mnt/etc/vconsole.conf
 
-# Setting hosts file.
+# Setting hosts file
 info_print "Setting hosts file."
 cat > /mnt/etc/hosts <<EOF
 127.0.0.1   localhost
@@ -349,7 +350,7 @@ cat > /mnt/etc/hosts <<EOF
 127.0.1.1   $hostname.localdomain   $hostname
 EOF
 
-# Virtualization check.
+# Virtualization check
 virt_check
 
 # Configuring /etc/mkinitcpio.conf
@@ -357,7 +358,7 @@ info_print "Configuring /etc/mkinitcpio for ZSTD compression and LUKS hook."
 sed -i 's,#COMPRESSION="zstd",COMPRESSION="zstd",g' /mnt/etc/mkinitcpio.conf
 sed -i 's,modconf block filesystems keyboard,keyboard modconf block encrypt filesystems,g' /mnt/etc/mkinitcpio.conf
 
-# Enabling LUKS in GRUB and setting the UUID of the LUKS container.
+# Enabling LUKS in GRUB and setting the UUID of the LUKS container
 UUID=$(blkid $cryptroot | cut -f2 -d'"')
 sed -i 's/#\(GRUB_ENABLE_CRYPTODISK=y\)/\1/' /mnt/etc/default/grub
 echo "" >> /mnt/etc/default/grub
@@ -384,7 +385,7 @@ curl https://raw.githubusercontent.com/GrapheneOS/infrastructure/main/chrony.con
 # Setting GRUB configuration file permissions
 chmod 755 /mnt/etc/grub.d/*
 
-# Adding keyfile to the initramfs to avoid double password.
+# Adding keyfile to the initramfs to avoid double password
 dd bs=512 count=4 if=/dev/random of=/mnt/cryptkey/.root.key iflag=fullblock &>/dev/null
 chmod 000 /mnt/cryptkey/.root.key &>/dev/null
 cryptsetup -v luksAddKey /dev/disk/by-partlabel/cryptroot /mnt/cryptkey/.root.key
@@ -395,7 +396,7 @@ sed -i 's#FILES=()#FILES=(/cryptkey/.root.key)#g' /mnt/etc/mkinitcpio.conf
 curl https://raw.githubusercontent.com/Kicksecure/security-misc/master/etc/modprobe.d/30_security-misc.conf >> /mnt/etc/modprobe.d/30_security-misc.conf
 chmod 600 /mnt/etc/modprobe.d/*
 
-# Security kernel settings.
+# Security kernel settings
 curl https://raw.githubusercontent.com/Kicksecure/security-misc/master/etc/sysctl.d/30_security-misc.conf >> /mnt/etc/sysctl.d/30_security-misc.conf
 sed -i 's/kernel.yama.ptrace_scope=2/kernel.yama.ptrace_scope=3/g' /mnt/etc/sysctl.d/30_security-misc.conf
 curl https://raw.githubusercontent.com/Kicksecure/security-misc/master/etc/sysctl.d/30_silent-kernel-printk.conf >> /mnt/etc/sysctl.d/30_silent-kernel-printk.conf
@@ -428,7 +429,7 @@ zram-fraction = 1
 max-zram-size = 8192
 EOF
 
-# Randomize Mac Address.
+# Randomize Mac Address
 bash -c 'cat > /mnt/etc/NetworkManager/conf.d/00-macrandomize.conf' <<-'EOF'
 [device]
 wifi.scan-rand-mac-address=yes
@@ -440,7 +441,7 @@ EOF
 
 chmod 600 /mnt/etc/NetworkManager/conf.d/00-macrandomize.conf
 
-# Disable Connectivity Check.
+# Disable Connectivity Check
 bash -c 'cat > /mnt/etc/NetworkManager/conf.d/20-connectivity.conf' <<-'EOF'
 [connectivity]
 uri=http://www.archlinux.org/check_network_status.txt
@@ -457,24 +458,25 @@ EOF
 
 chmod 600 /mnt/etc/NetworkManager/conf.d/ip6-privacy.conf
 
+
 ######################################################################
-# Configuring the system.
+# Configuring the system
 ######################################################################
 info_print "Configuring the system (timezone, system clock, initramfs, Snapper, GRUB)."
 arch-chroot /mnt /bin/bash -e <<EOF
-    # Setting up timezone.
+    # Setting up timezone
     ln -sf /usr/share/zoneinfo/$(curl -s http://ip-api.com/line?fields=timezone) /etc/localtime &>/dev/null
     
-    # Setting up clock.
+    # Setting up clock
     hwclock --systohc
     
-    # Generating locales.
+    # Generating locales
     locale-gen &>/dev/null
     
-    # Generating a new initramfs.
+    # Generating a new initramfs
     mkinitcpio -P &>/dev/null
     
-    # Snapper configuration.
+    # Snapper configuration
     umount /.snapshots
     rm -r /.snapshots
     snapper --no-dbus -c root create-config /
@@ -483,12 +485,12 @@ arch-chroot /mnt /bin/bash -e <<EOF
     mount -a &>/dev/null
     chmod 750 /.snapshots
     
-    # Installing GRUB.
-    echo "Installing GRUB on /boot."
+    # Installing GRUB
+    info_print "Installing GRUB on /boot."
     grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB --modules="normal test efi_gop efi_uga search echo linux all_video gfxmenu gfxterm_background gfxterm_menu gfxterm loadenv configfile gzio part_gpt cryptodisk luks gcry_rijndael gcry_sha256 btrfs" --disable-shim-lock &>/dev/null
     
-    # Creating grub config file.
-    echo "Creating GRUB config file."
+    # Creating grub config file
+    info_print "Creating GRUB config file."
     grub-mkconfig -o /boot/grub/grub.cfg &>/dev/null
     
     # Adding user with sudo privilege
@@ -501,11 +503,11 @@ arch-chroot /mnt /bin/bash -e <<EOF
     fi
 EOF
 
-# Setting root password.
+# Setting root password
 info_print "Setting root password."
 echo "root:$rootpass" | arch-chroot /mnt chpasswd
 
-# Setting user password.
+# Setting user password
 if [[ -n "$username" ]]; then
     echo "%wheel ALL=(ALL:ALL) ALL" > /mnt/etc/sudoers.d/wheel
     info_print "Adding the user $username to the system with root privilege."
@@ -514,17 +516,17 @@ if [[ -n "$username" ]]; then
     echo "$username:$userpass" | arch-chroot /mnt chpasswd
 fi
 
-# Giving wheel user sudo access.
+# Giving wheel user sudo access
 sed -i 's/# \(%wheel ALL=(ALL\(:ALL\|\)) ALL\)/\1/g' /mnt/etc/sudoers
 
 # Change audit logging group
 echo "log_group = audit" >> /mnt/etc/audit/auditd.conf
 
-# Pacman eye-candy features.
+# Pacman eye-candy features
 info_print "Enabling colours, animations, and parallel downloads for pacman."
 sed -Ei 's/^#(Color)$/\1\nILoveCandy/;s/^#(ParallelDownloads).*/\1 = 10/' /mnt/etc/pacman.conf
 
-# Enabling various services.
+# Enabling various services
 info_print "Enabling Reflector, automatic snapshots, BTRFS scrubbing and systemd-oomd."
 services=(auditd fstrim.timer NetworkManager apparmor firewalld reflector.timer systemd-oomd chronyd snapper-timeline.timer snapper-cleanup.timer grub-btrfs.path )
 for service in "${services[@]}"; do
@@ -534,11 +536,11 @@ done
 # Disabling systemd-timesyncd
 systemctl disable systemd-timesyncd --root=/mnt &>/dev/null
 
-# Setting umask to 077.
+# Setting umask to 077
 sed -i 's/022/077/g' /mnt/etc/profile
 echo "" >> /mnt/etc/bash.bashrc
 echo "umask 077" >> /mnt/etc/bash.bashrc
 
-# Finishing up.
+# Finishing up
 info_print "Done, you may now wish to reboot (further changes can be done by chrooting into /mnt)."
 exit
