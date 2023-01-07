@@ -155,16 +155,16 @@ userpass_selector () {
 
 # Welcome screen
 echo -ne "${BOLD}${BYELLOW}
-  dP              oo dP oo          dP         dP   MMP"""""YMM MP""""""`MM 
-  88                 88             88         88   M' .mmm. `M M  mmmmm..M 
-d8888P dP  dP  dP dP 88 dP .d8888b. 88d888b. d8888P M  MMMMM  M M.      `YM 
-  88   88  88  88 88 88 88 88'  `88 88'  `88   88   M  MMMMM  M MMMMMMM.  M 
-  88   88.88b.88' 88 88 88 88.  .88 88    88   88   M. `MMM' .M M. .MMM'  M 
-  dP   8888P Y8P  dP dP dP `8888P88 dP    dP   dP   MMb     dMM Mb.     .dM 
-                                .88                 MMMMMMMMMMM MMMMMMMMMMM 
-                            d8888P                                          
+======================================================================
+TTTTTTT            iii lll iii         hh      tt     OOOOO   SSSSS  
+  TTT   ww      ww     lll      gggggg hh      tt    OO   OO SS      
+  TTT   ww      ww iii lll iii gg   gg hhhhhh  tttt  OO   OO  SSSSS  
+  TTT    ww ww ww  iii lll iii ggggggg hh   hh tt    OO   OO      SS 
+  TTT     ww  ww   iii lll iii      gg hh   hh  tttt  OOOO0   SSSSS  
+                                ggggg                                
+======================================================================
 ${RESET}"
-info_print "Welcome to Twilight4s OS isntallation script, a script made in order to simplify the process of installing Arch Linux."
+info_print "Welcome to Twilight4s OS installation script made in order to simplify the process of installing Arch Linux."
 
 # Choosing the target for the installation.
 info_print "Available disks for the installation:"
